@@ -126,3 +126,46 @@ async def cmd_avanscheck(message: Message) -> None:
                 lines.append(f"• {label}: ❌ ошибка")
 
     await status_msg.edit_text("\n".join(lines), parse_mode="HTML")
+
+
+# ── /debugbalance (временная команда для диагностики) ────────────────────────
+
+@router.message(Command("debugbalance"))
+async def cmd_debugbalance(message: Message) -> None:
+    if message.from_user.id != ADMIN_TELEGRAM_ID:
+        return
+
+    accounts = await db.get_all_avito_accounts()
+    if not accounts:
+        await message.answer("Нет аккаунтов.")
+        return
+
+    acc = accounts[0]
+    client = get_client(acc["id"], acc["client_id"], acc["client_secret"])
+
+    async with aiohttp.ClientSession() as session:
+        # Показываем raw ответ от /self
+        try:
+            self_data = await client.get_self(session)
+            await message.answer(
+                f"<b>/self raw:</b>\n<code>{self_data}</code>",
+                parse_mode="HTML",
+            )
+        except Exception as e:
+            await message.answer(f"/self ошибка: {e}")
+
+        # Показываем raw ответ от /balance/
+        user_id = acc.get("avito_user_id", "")
+        await message.answer(f"avito_user_id из БД: <code>{user_id!r}</code>", parse_mode="HTML")
+        try:
+            from avito_api import AVITO_BASE
+            token = await client._ensure_token(session)
+            url = f"{AVITO_BASE}/core/v1/accounts/{user_id}/balance/"
+            async with session.get(url, headers={"Authorization": f"Bearer {token}"}) as resp:
+                body = await resp.text()
+                await message.answer(
+                    f"<b>/balance/ [{resp.status}]:</b>\n<code>{body}</code>",
+                    parse_mode="HTML",
+                )
+        except Exception as e:
+            await message.answer(f"/balance/ ошибка: {e}")
