@@ -164,15 +164,17 @@ async def cmd_debugbalance(message: Message) -> None:
 
         endpoints = [
             f"/core/v1/accounts/{user_id}/balance/",
-            f"/core/v1/accounts/{user_id}/balance",
-            "/core/v1/accounts/self",
+            f"/core/v1/accounts/{user_id}/operations/",
+            f"/autoload/v2/accounts/{user_id}/",
+            f"/core/v1/accounts/{user_id}/stats/",
+            f"/finance/v1/accounts/{user_id}/balance/",
         ]
         for ep in endpoints:
             try:
                 async with session.get(f"{AVITO_BASE}{ep}", headers=headers) as resp:
                     body = await resp.text()
                     await message.answer(
-                        f"<b>{ep} [{resp.status}]:</b>\n<code>{body[:800]}</code>",
+                        f"<b>{ep} [{resp.status}]:</b>\n<code>{body[:600]}</code>",
                         parse_mode="HTML",
                     )
             except Exception as e:
