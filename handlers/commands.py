@@ -113,7 +113,8 @@ async def cmd_avanscheck(message: Message) -> None:
             phone = acc.get("avito_phone", "")
             label = f"{acc['name']} ({phone})" if phone else acc["name"]
             try:
-                balance = await client.get_balance(session)
+                user_id = acc.get("avito_user_id", "")
+                balance = await client.get_balance(session, user_id)
                 real = balance.get("real", 0)
                 bonus = balance.get("bonus", 0)
                 bal_text = _format_rub(real)

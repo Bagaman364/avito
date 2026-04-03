@@ -88,14 +88,15 @@ class AvitoClient:
 
     # ── Wallet / advance balance ──────────────────────────────────────────────
 
-    async def get_balance(self, session: aiohttp.ClientSession) -> dict:
+    async def get_balance(self, session: aiohttp.ClientSession, user_id: str) -> dict:
         """
-        Returns wallet balance.
+        Returns advance (аванс) balance.
+        Endpoint: GET /core/v1/accounts/{user_id}/balance/
         Response: { "real": <float>, "bonus": <float> }
         """
-        data = await self._get(session, "/core/v1/accounts/self")
+        data = await self._get(session, f"/core/v1/accounts/{user_id}/balance/")
         return {
-            "real": data.get("wallet", 0),
+            "real": data.get("real", 0),
             "bonus": data.get("bonus", 0),
         }
 
