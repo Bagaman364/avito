@@ -112,7 +112,7 @@ class AvitoClient:
         if unread_only:
             params["unread_only"] = 1
         data = await self._get(
-            session, f"/messenger/v3/accounts/{user_id}/chats", **params
+            session, f"/messenger/v2/accounts/{user_id}/chats", **params
         )
         return data.get("chats", [])
 
@@ -127,7 +127,7 @@ class AvitoClient:
     ) -> list[dict]:
         data = await self._get(
             session,
-            f"/messenger/v3/accounts/{user_id}/chats/{chat_id}/messages",
+            f"/messenger/v2/accounts/{user_id}/chats/{chat_id}/messages",
             limit=limit,
         )
         return data.get("messages", [])

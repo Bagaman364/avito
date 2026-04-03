@@ -154,18 +154,26 @@ async def cmd_debugbalance(message: Message) -> None:
         except Exception as e:
             await message.answer(f"/self ошибка: {e}")
 
-        # Показываем raw ответ от /balance/
+        # Пробуем разные варианты balance endpoint
         user_id = acc.get("avito_user_id", "")
         await message.answer(f"avito_user_id из БД: <code>{user_id!r}</code>", parse_mode="HTML")
-        try:
-            from avito_api import AVITO_BASE
-            token = await client._ensure_token(session)
-            url = f"{AVITO_BASE}/core/v1/accounts/{user_id}/balance/"
-            async with session.get(url, headers={"Authorization": f"Bearer {token}"}) as resp:
-                body = await resp.text()
-                await message.answer(
-                    f"<b>/balance/ [{resp.status}]:</b>\n<code>{body}</code>",
-                    parse_mode="HTML",
-                )
-        except Exception as e:
-            await message.answer(f"/balance/ ошибка: {e}")
+
+        from avito_api import AVITO_BASE
+        token = await client._ensure_token(session)
+        headers = {"Authorization": f"Bearer {token}"}
+
+        endpoints = [
+            f"/core/v1/accounts/{user_id}/balance/",
+            f"/core/v1/accounts/{user_id}/balance",
+            "/core/v1/accounts/self",
+        ]
+        for ep in endpoints:
+            try:
+                async with session.get(f"{AVITO_BASE}{ep}", headers=headers) as resp:
+                    body = await resp.text()
+                    await message.answer(
+                        f"<b>{ep} [{resp.status}]:</b>\n<code>{body[:800]}</code>",
+                        parse_mode="HTML",
+                    )
+            except Exception as e:
+                await message.answer(f"{ep} ошибка: {e}")
